@@ -176,6 +176,8 @@ class ECB:
                 self.logger.debug(F"Parser pass cookie modal on page: {self.driver.current_url}")
         except NoSuchElementException as e:
             self.logger.debug(f'modal agree not found on page: {self.driver.current_url}')
+        except Exception as e:
+            self.logger.error(f'some error occured on page: {self.driver.current_url}. Error: {e}')
 
     @staticmethod
     def _find_document_text_for_logger(doc: SPP_document):
