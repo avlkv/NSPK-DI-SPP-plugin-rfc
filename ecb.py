@@ -35,7 +35,7 @@ class ECB:
 
     HOST = 'https://www.ecb.europa.eu/pub/pubbydate/html/index.en.html'
 
-    def __init__(self, webdriver: WebDriver, *args, **kwargs):
+    def __init__(self, webdriver: WebDriver, max_count_documents: int = 100, *args, **kwargs):
         """
         Конструктор класса парсера
 
@@ -46,6 +46,7 @@ class ECB:
         self._content_document = []
 
         self.driver = webdriver
+        self.max_count_documents = max_count_documents
 
         # Логер должен подключаться так. Вся настройка лежит на платформе
         self.logger = logging.getLogger(self.__class__.__name__)
@@ -128,7 +129,12 @@ class ECB:
                     break
                 time.sleep(1)
 
-        for doc in documents:
+        for index, doc in enumerate(documents):
+            # Ограничение парсинга до установленного параметра self.max_count_documents
+            if index >= self.max_count_documents:
+                self.logger.debug('Max count documents reached')
+                break
+
             if doc.web_link.endswith('html'):
                 try:
                     self.driver.get(doc.web_link)
@@ -147,15 +153,8 @@ class ECB:
                     self.logger.info(self._find_document_text_for_logger(doc))
                 except Exception as e:
                     self.logger.error(e)
-
-
-
-        # Логирование найденного документа
-        # self.logger.info(self._find_document_text_for_logger(document))
-
         # ---
         # ========================================
-        ...
 
     def _initial_access_source(self, url: str, delay: int = 2):
         self.driver.get(url)
