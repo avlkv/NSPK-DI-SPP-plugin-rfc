@@ -79,62 +79,9 @@ class ECB:
         # -
         self.driver.set_page_load_timeout(40)
 
-        self._initial_access_source(self.HOST)
-
-        sections = self.driver.find_elements(By.CLASS_NAME, 'lazy-load')
-
-        documents = []
-
-        for section in sections[:1]:
-            self.driver.execute_script("arguments[0].scrollIntoView();", section)
-            while True:
-                if 'loaded' in section.get_attribute('class').split(' '):
-                    print(section.get_attribute('class'), section)
-                    time.sleep(2)
-                    dts = section.find_elements(By.TAG_NAME, "dt")
-                    dds = section.find_elements(By.TAG_NAME, "dd")
-                    print(len(dts), len(dds))
-                    if len(dts) == len(dds):
-                        for date, body in zip(dts, dds):
-                            try:
-                                self.driver.execute_script("arguments[0].scrollIntoView();", body)
-                                doc = SPP_document(
-                                    None,
-                                    body.find_element(By.CLASS_NAME, 'title').text,
-                                    None,
-                                    None,
-                                    body.find_element(By.CLASS_NAME, 'title').find_element(By.TAG_NAME, 'a').get_attribute('href'),
-                                    None,
-                                    None,
-                                    dateutil.parser.parse(date.find_element(By.CLASS_NAME, 'date').text),
-                                    None,
-                                )
-                                try:
-                                    doc.other_data = {
-                                        'category': body.find_element(By.CLASS_NAME, 'category').text,
-                                    }
-                                except:
-                                    pass
-                                print(doc)
-                                documents.append(doc)
-
-                            except Exception as e:
-                                self.logger.error(e)
-                                continue
-
-
-
-                    else:
-                        self.logger.debug('Section parse error')
-                    break
-                time.sleep(1)
+        documents = self.prepared_doc_links()
 
         for index, doc in enumerate(documents):
-            # Ограничение парсинга до установленного параметра self.max_count_documents
-            if index >= self.max_count_documents:
-                self.logger.debug('Max count documents reached')
-                break
-
             if doc.web_link.endswith('html'):
                 try:
                     self.driver.get(doc.web_link)
@@ -142,7 +89,7 @@ class ECB:
                     time.sleep(2)
 
                     text = self.driver.find_element(By.CLASS_NAME, 'section').text
-                    print(text[:1000])
+                    print(text)
                     try:
                         text += '\n\n' + self.driver.find_element(By.CLASS_NAME, 'footnotes').text
                     except:
@@ -155,6 +102,61 @@ class ECB:
                     self.logger.error(e)
         # ---
         # ========================================
+
+    def prepared_doc_links(self) -> list[SPP_document]:
+        """
+        Метод проходит по главной странице, загружает секции и сохраняет заголовки, дату и ссылку на страницу документа
+        """
+
+        self._initial_access_source(self.HOST)
+        sections = self.driver.find_elements(By.CLASS_NAME, 'lazy-load')
+        documents = []
+
+        for section in sections:
+            self.driver.execute_script("arguments[0].scrollIntoView();", section)
+            while True:
+                if 'loaded' in section.get_attribute('class').split(' '):
+                    time.sleep(2)
+                    dts = section.find_elements(By.TAG_NAME, "dt")
+                    dds = section.find_elements(By.TAG_NAME, "dd")
+                    if len(dts) == len(dds):
+                        for date, body in zip(dts, dds):
+                            try:
+                                self.driver.execute_script("arguments[0].scrollIntoView();", body)
+                                doc = SPP_document(
+                                    None,
+                                    body.find_element(By.CLASS_NAME, 'title').text,
+                                    None,
+                                    None,
+                                    body.find_element(By.CLASS_NAME, 'title').find_element(By.TAG_NAME,
+                                                                                           'a').get_attribute('href'),
+                                    None,
+                                    None,
+                                    dateutil.parser.parse(date.find_element(By.CLASS_NAME, 'date').text),
+                                    None,
+                                )
+                                try:
+                                    doc.other_data = {
+                                        'category': body.find_element(By.CLASS_NAME, 'category').text,
+                                    }
+                                except:
+                                    pass
+                                if doc.web_link.endswith('html'):
+                                    documents.append(doc)
+                                    # Ограничение парсинга до установленного параметра self.max_count_documents
+                                    if len(documents) >= self.max_count_documents:
+                                        self.logger.debug('Max count documents reached')
+                                        return documents
+
+                            except Exception as e:
+                                self.logger.error(e)
+                                continue
+                    else:
+                        self.logger.debug('Section parse error')
+                    break
+                time.sleep(1)
+
+        return documents
 
     def _initial_access_source(self, url: str, delay: int = 2):
         self.driver.get(url)
