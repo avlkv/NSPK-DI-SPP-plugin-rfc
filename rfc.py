@@ -32,7 +32,7 @@ class RFC:
     SOURCE_NAME = 'rfc'
     _content_document: list[SPP_document]
 
-    HOST = '"https://www.rfc-editor.org/rfc/"'
+    HOST = "https://www.rfc-editor.org/rfc/"
 
     def __init__(self, webdriver: WebDriver, max_count_documents: int = 100, *args, **kwargs):
         """
@@ -79,7 +79,7 @@ class RFC:
 
         self.driver.get(self.HOST)
 
-        links_list = driver.find_elements(By.TAG_NAME, 'a')
+        links_list = self.driver.find_elements(By.TAG_NAME, 'a')
         """Список всех ссылок, которые есть на странице"""
 
         self.logger.info('Поиск новых материалов... Может занять долгое время (>20 мин.)')
@@ -99,7 +99,7 @@ class RFC:
                 self.logger.debug(f'Загрузка и обработка документа: {web_link}')
 
                 self.driver.execute_script("window.open('');")
-                self.driver.switch_to.window(driver.window_handles[1])
+                self.driver.switch_to.window(self.driver.window_handles[1])
                 self.driver.get(web_link)
                 time.sleep(1)
 
@@ -224,6 +224,9 @@ class RFC:
                                    datetime.datetime.now())
                 self._content_document.append(doc)
                 self.logger.info(self._find_document_text_for_logger(doc))
+
+                self.driver.close()
+                self.driver.switch_to.window(self.driver.window_handles[0])
 
     @staticmethod
     def _find_document_text_for_logger(doc: SPP_document):
