@@ -1,5 +1,5 @@
-# This plugin processes ECB source
-#
+# This plugin processes Native source
+# URL: https://www.global.jcb/en/press/index.html
 # Author:
 #	Лупашко Роман Владимирович
 #	NSPK DI
@@ -9,7 +9,7 @@
 
 # Инструкция REF обязательна и указывает на связанный объект.
 # В для типа PARSER необходимо указать уникальное имя источника в {ref-name}
-REF ecb    # *раскомментировать
+REF rfc
 
 TYPE PARSER
 
@@ -17,8 +17,8 @@ TYPE PARSER
 # Если в плагине есть нагрузка (модель или парсер), то нужно указать и их.
 # TYPE {filename}   # *раскомментировать
 FILE SPPfile
-FILE ecb.py
-
+FILE rfc.py
+# FILE backup/documents.backup.pkl
 
 ## ****************************************************
 
@@ -27,7 +27,7 @@ FILE ecb.py
 
 # Инструкция SET restart-interval устанавливает интервал перезапуска задачи. Формат POSTGRESQL interval string
 # Например: {interval string} = {2 days} или {1 week}
-SET restart-interval 1 day
+SET restart-interval 20 hours
 
 ## ****************************************************
 
@@ -36,18 +36,17 @@ SET restart-interval 1 day
 
 # Инструкция PAYLOAD указывает имя файла нагрузки.
 # Файл должен иметь расширение .py и содержать класс нагрузки
-PAYLOAD ecb    # *раскомментировать
+PAYLOAD rfc
 
 # Инструкция INIT устанавливает значения, объекты, который нужно передать в конструктор класса нагрузки при ее инициализации
 #       keyword - название, по которому будет передаваться объект (key)
 #       module - название модуля, который будет загружен
-# INIT {keyword} {module}
 INIT webdriver MODULE(WebDriver)
+#INIT dump FILE(backup/documents.backup.pkl)
 
 # Инструкция ENTRY устанавоивает точку входа. Это имя класса и метода, которые должна запустить платформа.
 #       {entry method} по умолчанию - content
-# ENTRY {payload classname} {entry method}
-ENTRY ECB content
+ENTRY RFC content
 
 ## ****************************************************
 
@@ -59,9 +58,9 @@ ENTRY ECB content
 #       critical - флаг, который указывает, что выбранный модуль должен завершить работу без ошибок для продолжения работы постобработки
 
 # Стандартная связка для парсеров
-ADD TimezoneSafeControl critical
-ADD CutJunkCharactersFromDocumentText critical
-ADD FilterOnlyNewDocumentWithDB critical
-ADD UploadDocumentToDB critical
+ADD TimezoneSafeControl
+ADD CutJunkCharactersFromDocumentText
+ADD FilterOnlyNewDocumentWithDB
+ADD UploadDocumentToDB
 
 ## ****************************************************
