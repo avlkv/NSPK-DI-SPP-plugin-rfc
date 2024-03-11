@@ -30,7 +30,10 @@
     "class": "RFC",
     "entry": {
         "point": "content",
-        "params": []
+        "params": [
+                  {"key": "webdriver", "value": {"type": "module", "name": "WebDriver"}},
+                  {"key": "max_count_documents", "value": {"type": "const", "name": 200}}
+                ]
     },
     "additional_methods": null
 }
