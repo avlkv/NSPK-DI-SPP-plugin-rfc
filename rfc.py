@@ -34,7 +34,7 @@ class RFC:
 
     HOST = "https://www.rfc-editor.org/rfc/"
 
-    def __init__(self, webdriver: WebDriver, max_count_documents: int = 100, *args, **kwargs):
+    def __init__(self, webdriver: WebDriver, last_document: SPP_document, max_count_documents: int = 100, *args, **kwargs):
         """
         Конструктор класса парсера
 
@@ -223,10 +223,16 @@ class RFC:
                                    date,
                                    datetime.datetime.now())
                 self._content_document.append(doc)
+
                 self.logger.info(self._find_document_text_for_logger(doc))
 
                 self.driver.close()
                 self.driver.switch_to.window(self.driver.window_handles[0])
+
+                # Ограничение парсинга до установленного параметра self.max_count_documents
+                if len(self._content_document) >= self.max_count_documents:
+                    self.logger.info('Max count documents reached')
+                    return
 
     @staticmethod
     def _find_document_text_for_logger(doc: SPP_document):

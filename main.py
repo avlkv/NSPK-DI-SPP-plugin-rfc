@@ -53,3 +53,4 @@ except Exception as e:
     print(e)
 
 print(*docs, sep='\n\r\n')
+print(len(docs))
