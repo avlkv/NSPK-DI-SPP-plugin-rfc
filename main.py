@@ -6,7 +6,8 @@ import pandas
 
 from src.spp.types import SPP_document
 
-# config.fileConfig('dev.logger.conf')
+
+config.fileConfig('dev.logger.conf')
 
 
 def driver():
@@ -49,8 +50,11 @@ except Exception as e:
 try:
     dataframe = pandas.DataFrame.from_records([to_dict(d) for d in docs])
     dataframe.to_csv('out/rfc_documents.csv')
+    exc = 'dataframe ok'
 except Exception as e:
+    exc = e
     print(e)
 
 print(*docs, sep='\n\r\n')
 print(len(docs))
+print(exc)

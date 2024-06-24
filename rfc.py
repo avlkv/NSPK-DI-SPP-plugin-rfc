@@ -87,7 +87,7 @@ class RFC:
         links_list = self.driver.find_elements(By.TAG_NAME, 'a')
         """Список всех ссылок, которые есть на странице"""
 
-        self.logger.info('Поиск новых материалов... Может занять долгое время (>20 мин.)')
+        self.logger.info(f'Обработка материалов ({len(links_list)} шт.)...')
 
         for link in links_list:
 
@@ -138,12 +138,21 @@ class RFC:
                     title = ' '.join(title.split(' ')[:-2])[:-1]
                     """4. Заголовок материала"""
 
-                    date = datetime.datetime.strptime(date_text, '%B %Y')
+                    pub_date = datetime.datetime.strptime(date_text, '%B %Y')
+                    if pub_date.year < 1970:
+                        self.logger.debug(
+                            'Год публикации материала меньше 1970. Материал пропускается')
+                        self.driver.close()
+                        self.driver.switch_to.window(self.driver.window_handles[0])
+                        continue
                     """5. Дата публикации материала"""
                 except:
-                    self.logger.debug('Не удалось сохранить название или дату публикации материала')
-                    title = ''
-                    date = ''
+                    self.logger.debug('Не удалось сохранить название или дату публикации материала. Материал пропускается')
+                    self.driver.close()
+                    self.driver.switch_to.window(self.driver.window_handles[0])
+                    continue
+                    # title = ''
+                    # date = ''
 
                 try:
                     abstract_title = self.driver.find_element(By.XPATH, '//*[text()=\'Abstract\']')
@@ -225,7 +234,7 @@ class RFC:
                                    web_link,
                                    None,
                                    other_data,
-                                   date,
+                                   pub_date,
                                    datetime.datetime.now())
 
                 self.find_document(doc)
